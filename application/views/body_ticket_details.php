@@ -163,7 +163,8 @@ $tk = $ticket[0];
                             <div class="form-group">
                                 <div class="col-md-11">
                                     <div class="pull-right"><button type="button" class="btn btn-warning btn-flat" id="kick_off"<?php
-                                        echo ($tk->state_level < 2) ? " style=\"display:none\"" : NULL;
+                                    
+                                        echo ($tk->state_level > 2) ? " style=\"display:none\"" : NULL;
                                         ?> onclick='kick_off_ticket(<?php echo $tk->id; ?>)'>Kick Off</button>
                                         <?php
                                         // if already kicked_off it will can not be updated
