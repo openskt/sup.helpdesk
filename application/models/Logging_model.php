@@ -20,6 +20,14 @@ class Logging_model extends CI_Model
 
     }
 
+    // return datetime  of the ticket when its created
+    public function get_ticket_create_datetime($ticket_id){
+      return $this->db->select('tstamp')
+              ->get_where('log_ticket', array('ticket_id' => $ticket_id, 'state_level' => 1))
+              ->row()
+              ->tstamp;
+    }
+
     // list all currently active project
     /*
     public function list_all_active() {

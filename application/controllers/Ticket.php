@@ -78,7 +78,7 @@ class Ticket extends CI_Controller
         // load logging model
         $this->load->model("Logging_model", "logging");
 
-        $data['ticket_create_datetime'] = $this->logging->
+        $data['ticket_create_datetime'] = $this->logging->get_ticket_create_datetime($ticket_id);
 
         // get list of project curently active
         // next update shold specific department or section
@@ -136,17 +136,15 @@ class Ticket extends CI_Controller
     }
 
     // update ticket
-    // it will be more in next version but NOW
-    // it will update only
-    // email and project_id
     public function update(){
 
+        $ticket_id = $this->input->post('ticket_id');
         // check state of ticket
-        $t_state = $this->ticket->get_state($this->input->post('ticket_id'));
+        $t_state = $this->ticket->get_state($ticket_id);
         //$t_state = "new";
         //echo 'state='.$t_state;
 
-        if($t_state == 'new' || $t_state == 'pick' || $t_state == 'assign') {
+        if($t_state < 4) {
             $subject    = $_POST['subject'];
             $details    = $_POST['details'];
             $project_id = $_POST['project_id'];
@@ -159,18 +157,27 @@ class Ticket extends CI_Controller
             // js did it
             //if($urgent != 1) $urgent = 0;
 
-            //var_dump($_POST);
+            //echo var_dump($_POST);
             //exit();
 
+            // handle the email
             // load email helper
             $this->load->helper('email');
-            if(!valid_email($email) || $subject == "" || $details == "" || $duedate == ""){
-                echo "Error: Bad End User Email or not complete data submit";
+            if(!valid_email($email)) {
+                echo "Error: Bad e-mail address.";
+            } else {
+                // if the email is ok then
+                // 1. check in `user` table for this email if exist
+                // end_user = user.id
+                // 2. if not add new user add get inserted_id here
+            }
+            if($subject == "" || $details == "" || $duedate == ""){
+                echo "Error: Please complete all required fields.";
             }else{
                 $data = array(
                     'subject'       => $subject,
                     'details'       => $details,
-                    'email_enduser' => $email,
+                    'end_user'      => $email,
                     'project_id'    => $project_id,
                     'urgent'        => $urgent,
                     'due_date'       => $duedate,

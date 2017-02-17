@@ -169,10 +169,10 @@ class Ticket_model extends CI_Model
     // return state of the ticket
     public function get_state($ticket_id){
         //return $this->db->get_where('ticket', array('id' => $ticket_id)) -> row();
-        return $this->db->select('state')
+        return $this->db->select('state_level')
                     ->get_where('ticket', array('id' => $ticket_id))
                     ->row()
-                    ->state;
+                    ->state_level;
     }
 
     // close connection
