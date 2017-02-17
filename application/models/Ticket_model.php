@@ -14,50 +14,12 @@ class Ticket_model extends CI_Model
     }
 
     // Add new ticket
-    public function add_new($data) {
+    public function add_new($data, $due_date) {
         // Check urgently field
-        if(isset($data['urgent']) && ($data['urgent'] == 'on')){
-            $urgent = 1;
-        }else{
-            $urgent = 0;
-        }
-
-        // Check attached
-        // Upload it into DB
-
-        // Check Due due_date
-        switch($data['due']) {
-          case "3h":
-            $due_date = 'NOW() + INTERVAL 3 HOUR';
-            break;
-          case "6h":
-            $due_date = 'NOW() + INTERVAL 6 HOUR';
-            break;
-          case "24h":
-            $due_date = 'NOW() + INTERVAL 1 DAY';
-            break;
-          case "3d":
-            $due_date = 'NOW() + INTERVAL 3 DAY';
-            break;
-          case "7d":
-            $due_date = 'NOW() + INTERVAL 7 DAY';
-            break;
-        }
-
-        // Save them all into DB
-        $data = array(
-            'create_by'   => $this->session->userdata('id'),
-            'subject'     => $data['ticket_subject'],
-            'details'     => $data['ticket_details'],
-            //'due_date'    => $due_date,
-            'urgent'    => $urgent
-        );
-
-        // ci automatically escape all for security reason
-        // so ... have to force to
-        // do not escape this var
+        // Add new ticket
         $this->db->set('due_date', $due_date, FALSE);
-        return $this->db->insert("ticket", $data);
+        $this->db->insert("ticket", $data);
+        return $this->db->insert_id();
     }
 
     // update ticket now for
@@ -73,13 +35,24 @@ class Ticket_model extends CI_Model
 
     // return details of this ticket
     public function details($ticket_id) {
-        //$this->db->select('ticket.*, log_ticket.tstamp as create_datetime');
+        $this->db->select('a.id as id, a.subject as subject, a.details as details, a.urgent as urgent, a.priority as priority, b.fname as create_by_fname, b.lname as create_by_lname, a.due_date as due_date, c.email as enduser_email, d.tstamp as create_datetime, a.state_level as state_level, a.project_id as project_id');
+        $this->db->from('ticket a');
+        $this->db->join('user b', 'b.id=a.create_by', 'left');
+        $this->db->join('user c', 'c.id=a.end_user', 'left');
+        $this->db->join('log_ticket d', 'd.ticket_id=a.id AND d.state_level=1', 'left');
+        $this->db->where('ticket_id', $ticket_id);
+        $query = $this->db->get();
+        return $query->result();
+        /*
+        //$this->db->select('ticket.*, user.email as enduser_email');
         $this->db->from('ticket');
-        //$this->db->join('log_ticket', 'log_ticket.ticket_id = ticket.id');
+        //$this->db->join('user', array('user.id' => 'ticket.end_user')'user.id = ticket.end_user', 'ticket');
+        //$this->db->join('user', 'user.id = ticket.end_user AND ticket.end_user IS NOT NULL');
         $this->db->where('ticket.id', $ticket_id);
         //$this->db->where('log_ticket.state_level', 1);
         $query = $this->db->get();
         return $query->result();
+        */
     }
 
     // return number of ticket that you have picked

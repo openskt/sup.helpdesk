@@ -72,7 +72,11 @@ class Ticket extends CI_Controller
 
         // query to get details of this ticket
         $data['ticket'] = $this->ticket->details($ticket_id);
-
+        /*
+        echo "<pre>";
+        var_dump($data['ticket']);
+        exit();
+        */
         // load project model
         $this->load->model("Project_model", "project");
         // load logging model
@@ -88,8 +92,19 @@ class Ticket extends CI_Controller
         // query who(es) picked this ticket
         // also return status of this ticket as approved?
         $data['picked_by'] = $this->ticket->picked_by($ticket_id);
-
+        /*
+        $end_user = $data['ticket'][0]->end_user;
+        echo "<h1><pre>";
+        if(is_null($end_user)){
+            echo "NULL";
+        }else{
+            echo "NOT NULL";
+        }
+        echo "</h1>";
+        exit();
+        */
         // load the view
+
         $this->load->view('head-ext-1', $data);
         $this->load->view('aside', $data);
         $this->load->view('body_ticket_details', $data);
@@ -112,12 +127,60 @@ class Ticket extends CI_Controller
     // Create by SKT
     public function add_new()
     {
+        // Check urgently field
+        $user_id = $this->session->userdata('id');
+        $urgent = ($this->input->post('urgent') == 'on') ? 1 : 0;
+
+        switch($this->input->post('due')) {
+          case "3h":
+            $due_date = 'NOW() + INTERVAL 3 HOUR';
+            break;
+          case "6h":
+            $due_date = 'NOW() + INTERVAL 6 HOUR';
+            break;
+          case "24h":
+            $due_date = 'NOW() + INTERVAL 1 DAY';
+            break;
+          case "3d":
+            $due_date = 'NOW() + INTERVAL 3 DAY';
+            break;
+          case "7d":
+            $due_date = 'NOW() + INTERVAL 7 DAY';
+            break;
+        }
+
+        // Save them all into DB
+        $data = array(
+            'create_by'   => $user_id,
+            'subject'     => $this->input->post('ticket_subject'),
+            'details'     => $this->input->post('ticket_details'),
+            'state_level'       => 1,
+            //'due_date'    => $due_date,
+            'urgent'    => $urgent
+        );
+
         // use save in model
-        $this->ticket->add_new($_POST);
+        // this must return insert_id
+        $ticket_id = $this->ticket->add_new($data, $due_date);
+
+        // logging
+        // ------------------------------
+        // logging
+        // loading model
+        $this->load->model("Logging_model", "logging");
+        $data = array(
+            'ticket_id'     => $ticket_id,
+            'user_id'       => $user_id,
+            'state_level'   => 1,
+            'details'       => 'CREATE TICKET'
+        );
+        $this->logging->ticket($data);
+        //$this->logging->ticket($ticket_id, $state_level, $who, $note);
         // use helpers loadded via autoload.config
         redirect('/ticket', 'refresh');
 
     }
+
 
     // approve ticket
     public function approve()
@@ -143,6 +206,7 @@ class Ticket extends CI_Controller
         $t_state = $this->ticket->get_state($ticket_id);
         //$t_state = "new";
         //echo 'state='.$t_state;
+        //exit();
 
         if($t_state < 4) {
             $subject    = $_POST['subject'];
@@ -169,6 +233,20 @@ class Ticket extends CI_Controller
                 // if the email is ok then
                 // 1. check in `user` table for this email if exist
                 // end_user = user.id
+
+                // Load user model
+                $this->load->model("User_model", "user");
+
+                $data = array(
+                    'email' => $email
+                );
+
+                if($this->user->is_exist($data)){
+                    $end_user = $this->user->get_uid($data);
+                }else{
+                    $end_user = $this->user->add_new($data);
+                }
+                //exit();
                 // 2. if not add new user add get inserted_id here
             }
             if($subject == "" || $details == "" || $duedate == ""){
@@ -177,7 +255,7 @@ class Ticket extends CI_Controller
                 $data = array(
                     'subject'       => $subject,
                     'details'       => $details,
-                    'end_user'      => $email,
+                    'end_user'      => $end_user,
                     'project_id'    => $project_id,
                     'urgent'        => $urgent,
                     'due_date'       => $duedate,

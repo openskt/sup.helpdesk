@@ -13,20 +13,32 @@ class Logging_model extends CI_Model
         $this->load->database();
     }
 
-    // Add new ticket
-    public function add_new($data) {
-        // Check urgently field
-
-
-    }
-
     // return datetime  of the ticket when its created
     public function get_ticket_create_datetime($ticket_id){
+        $this->db->select('tstamp');
+        $query = $this->db->get_where('log_ticket', array('ticket_id' => $ticket_id, 'state_level' => 1));
+        return $query->result();
+        /*
       return $this->db->select('tstamp')
               ->get_where('log_ticket', array('ticket_id' => $ticket_id, 'state_level' => 1))
               ->row()
               ->tstamp;
+              */
     }
+
+        // Logging for ticket
+        public function ticket($data) {
+            // ci automatically escape all for security reason
+            // so ... have to force to
+            // do not escape this var
+            return $this->db->insert("log_ticket", $data);
+            //$this->db->set('due_date', $due_date, FALSE);
+            //return $this->db->insert("ticket", $data);
+        }
+
+        public function task($data) {
+            return $this->db->insert("log_task", $data);
+        }
 
     // list all currently active project
     /*

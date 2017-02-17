@@ -105,7 +105,7 @@ $tk = $ticket[0];
                             <div class="form-group">
                                 <label class="col-md-3 control-label">Create By</label>
                                 <div class="col-md-8">
-                                    <input class="form-control" placeholder="Create by" value="<?php echo $tk->create_by; ?>" readonly>
+                                    <input class="form-control" placeholder="Create by" value="<?php echo $tk->create_by_fname." ".$tk->create_by_lname; ?>" readonly>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -124,7 +124,7 @@ $tk = $ticket[0];
                             <div class="form-group">
                                 <label class="col-md-3 control-label">End User Email</label>
                                 <div class="col-md-8">
-                                    <input class="form-control" placeholder="End User" name="email" id="email" value="<?php echo $tk->end_user; ?>">
+                                    <input class="form-control" placeholder="End User" name="email" id="email" value="<?php echo $tk->enduser_email; ?>">
                                 </div>
                             </div>
                             <div class="form-group">
@@ -148,7 +148,7 @@ $tk = $ticket[0];
                                                               <div class="input-group-addon">
                                                                 <i class="fa fa-calendar"></i>
                                                               </div>
-                                                              <input class="form-control pull-right" id="create_datetime" type="text" value="<?php echo $ticket_create_datetime; ?>" readonly>
+                                                              <input class="form-control pull-right" id="create_datetime" type="text" value="<?php echo $tk->create_datetime; ?>" readonly>
                                                             </div>
 
                                 </div>
@@ -163,7 +163,7 @@ $tk = $ticket[0];
                             <div class="form-group">
                                 <div class="col-md-11">
                                     <div class="pull-right"><button type="button" class="btn btn-warning btn-flat" id="kick_off"<?php
-                                        echo ($tk->state_level < 3) ? " style=\"display:none\"" : NULL;
+                                        echo ($tk->state_level < 2) ? " style=\"display:none\"" : NULL;
                                         ?> onclick='kick_off_ticket(<?php echo $tk->id; ?>)'>Kick Off</button>
                                         <?php
                                         // if already kicked_off it will can not be updated
