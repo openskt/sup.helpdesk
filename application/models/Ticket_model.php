@@ -118,22 +118,9 @@ class Ticket_model extends CI_Model
         return $query->result();
     }
 
-    // approve thicket
-    public function approve($pick_id, $approv_by) {
-        $data = array(
-            'approv_by' => $approv_by,
-            'approve'   => 1
-        );
-        // no escape for approv_timestamp
-        $this->db->set('approv_timestamp', "NOW()", FALSE);
-        $this->db->where('id', $pick_id);
-        $this->db->update('pick', $data);
-        return TRUE;
-    }
-
     // change state of this ticket
     public function change_state($ticket_id, $state){
-        $this->db->set('state', $state);
+        $this->db->set('state_level', $state);
         $this->db->where('id', $ticket_id);
         return ($this->db->update('ticket')) ? TRUE : FALSE;
     }

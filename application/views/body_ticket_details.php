@@ -163,8 +163,14 @@ $tk = $ticket[0];
                             <div class="form-group">
                                 <div class="col-md-11">
                                     <div class="pull-right"><button type="button" class="btn btn-warning btn-flat" id="kick_off"<?php
-                                    
-                                        echo ($tk->state_level > 2) ? " style=\"display:none\"" : NULL;
+                                    /*
+                                        if($tk->state_level == 3){
+                                            echo NULL;
+                                        }else{
+
+                                        }
+                                        */
+                                        echo ($tk->state_level == 3) ? NULL : " style=\"display:none\"";
                                         ?> onclick='kick_off_ticket(<?php echo $tk->id; ?>)'>Kick Off</button>
                                         <?php
                                         // if already kicked_off it will can not be updated
@@ -174,7 +180,7 @@ $tk = $ticket[0];
                                             echo "<input type=\"button\" value=\"Update\" id=\"btn_update\" class=\"btn btn-default btn-flat\" disabled>";
                                         }
                                         ?>
-
+                                        <input type="hidden" value="<?php echo $tk->state_level; ?>" id="state_level" name="state_level">
                                     </div>
                                 </div>
                             </div>
@@ -262,6 +268,7 @@ $tk = $ticket[0];
                 function do_approve(ticket_id, pick_id, id){
                     //var x = 'ip=' + ip + ' id=' + id;
                     var button_id = '#'+id;
+                    var state_level = $("#state_level").val();
                     //$('#kick_off').hide();
                     //alert('pick_id='+pick_id+'\nbutton_id='+button_id);
                     //$(button_id).prop('value', 'Approved');
@@ -273,7 +280,7 @@ $tk = $ticket[0];
                     $.ajax({
                         type:       "post",
                         url:        "/ticket/approve",
-                        data:       "pick_id="+pick_id+"&ticket_id="+ticket_id,
+                        data:       "pick_id="+pick_id+"&ticket_id="+ticket_id+"&state_level="+state_level,
                         error:      function(req, err) {
                             console.log('my message: '+err);
                             alert("Can't do because: "+err);

@@ -183,18 +183,52 @@ class Ticket extends CI_Controller
 
 
     // approve ticket
+    // call by AJAX
     public function approve()
     {
 
-        $pick_id = $_POST['pick_id'];
-        $ticket_id = $_POST['ticket_id'];
+        $pick_id        = $_POST['pick_id'];
+        $ticket_id      = $_POST['ticket_id'];
+        $state_level    = $this->input->post('state_level');
+        $user_id        = $this->session->userdata('id');
 
-        if($this->ticket->approve($pick_id, $this->session->userdata('id'))){
-            // successfully approve this task
-            // change ticket state to 'assign'
-            echo ($this->ticket->change_state($ticket_id, 'assign')) ? "Success" : "Failed";
-        }else{
-            echo "Failed";
+        // load task model
+        $this->load->model("Task_model", "task");
+        $this->load->model("Logging_model", "logging");
+
+        $data = array(
+            'state_level' => 2
+        );
+        // change state of task.state_level = 2
+        if($this->task->change_state($pick_id, $data)) {
+            // update successfully
+
+            // do logging
+            $data = array(
+                'task_id' => $pick_id,
+                'user_id' => $this->session->userdata('id'),
+                'state_level' => 2,
+                'log_details' => 'TASK APPROVED'
+            );
+            $this->logging->task($data);
+
+            // check if ticket.state_level < 3
+            if($state_level < 3) {
+                // make it 3
+                $this->ticket->change_state($ticket_id, 3);
+                // logging
+                $data = array(
+                    'ticket_id'     => $ticket_id,
+                    'user_id'       => $user_id,
+                    'state_level'   => 3,
+                    'details'       => 'CHANGE TICKET STATE UP TO 3'
+                );
+                $this->logging->ticket($data);
+            }
+
+            echo "Success: Task approved.";
+        } else {
+            echo "Error: Cannot update task state_level.";
         }
     }
 

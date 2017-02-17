@@ -19,7 +19,20 @@ class Task_model extends CI_Model
     public function deny_pick($ticket_id) {
         $this->db->where('ticket_id', $ticket_id);
         $this->db->where('approve', 0);
-        $this->db->update('pick', array('deny' => 1));
+        $this->db->update('task', array('deny' => 1));
+    }
+
+    // change state_level of task
+    public function change_state($task_id, $data){
+        $this->db->where('id', $task_id);
+        $this->db->update('task', $data);
+        //echo "affected_rows=".$this->db->affected_rows();
+        //exit();
+        if($this->db->affected_rows() == 1) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
     }
 
     // close connection
