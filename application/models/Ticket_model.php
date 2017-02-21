@@ -93,20 +93,6 @@ class Ticket_model extends CI_Model
         }
     }
 
-    // return data array of my picked ticket
-    public function my_picked($user_id) {
-        // join between pick and ticket
-        // where pick.active=1
-        $this->db->select('*');
-        $this->db->from('pick');
-        $this->db->where('active', 1);
-        $this->db->where('user_id', $user_id);
-        $this->db->join('ticket', 'ticket.id = pick.ticket_id');
-        $this->db->order_by('pick_timestamp', 'desc');
-        $query = $this->db->get();
-        return $query->result();
-    }
-
     // return result arayy of people who picked this ticket
     public function picked_by($ticket_id) {
         $this->db->select('task.id as id, task.state_level as task_state, user.fname as fname, user.lname as lname');
@@ -133,6 +119,28 @@ class Ticket_model extends CI_Model
                     ->get_where('ticket', array('id' => $ticket_id))
                     ->row()
                     ->state_level;
+    }
+
+    // check completion of the ticket
+    // included check
+    // - subject
+    // - details
+    // - due_date
+    // - end_user
+    // - project_id
+    // return TRUE if all have filled
+    public function is_complete($ticket_id) {
+        $this->db->from('ticket');
+        $this->db->where('id', $ticket_id);
+        $rs = $this->db->get();
+        return empty($rs->end_user);
+        /*
+        if(!empty($rs->subject) AND !empty($rs->details) AND !empty($rs->due_date) AND !empty($rs->end_user) AND !empty($rs->project_id)) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+        */
     }
 
     // close connection

@@ -35,6 +35,14 @@ class Task_model extends CI_Model
         }
     }
 
+    // list all task from state_level and ticket_id
+    public function list_all($ticket_id) {
+        $this->db->from('task');
+        $this->db->where('ticket_id', $ticket_id);
+        $query = $this->db->get();
+        return $query->result();
+    }
+
     // close connection
     function __destruct() {
         $this->db->close();

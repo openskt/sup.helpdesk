@@ -309,7 +309,7 @@ class Ticket extends CI_Controller
     // kick off the ticket
     // - do not allow to modify the ticket
     // - do not allow to pick this ticket
-    // - change state of ticket to 'START'
+    // - change state of ticket to 'START'=4
     // - staff who picked this ticket can click on 'Start' to start working on his/her task
     // - deny pick that not approved
 
@@ -320,14 +320,55 @@ class Ticket extends CI_Controller
     public function kick_off(){
         // load aditional model
         $this->load->model("Task_model", "task");
+        $this->load->model("Logging_model", "logging");
 
-        $ticket_id = $this->input->post('ticket_id');
+        $ticket_id  = $this->input->post('ticket_id');
+        $user_id    = $this->session->userdata('id');
+
+        // check completion of the ticket
+        // subject, details, end_user, project_id ...
+        echo "Complete=".$this->ticket->is_complete($ticket_id);
+        exit();
 
         // check state of ticket first
-        if($this->ticket->get_state($ticket_id)=='assign') {
+        if($this->ticket->get_state($ticket_id)==3) {
             // chnage state of the ticket
-            $this->ticket->change_state($ticket_id, 'start');
-            $this->task->deny_pick($ticket_id);
+            $this->ticket->change_state($ticket_id, 4);
+
+            // logging changing state of ticket
+            $data = array(
+                'ticket_id'     => $ticket_id,
+                'user_id'       => $user_id,
+                'state_level'   => 4,
+                'details'       => 'CHANGE TICKET STATE UP TO 4 START'
+            );
+            $this->logging->ticket($data);
+
+            // list all tasks from this ticket
+            $tasks = $this->task->list_all($ticket_id);
+            foreach ($tasks as $task) {
+                // if this task approved
+                if($task->state_level == 2) {
+                    // 3 is ready to start
+                    $new_state = 3;
+                    $txt_state = "READY TO START";
+                } else {
+                    // if not only 1 posible is 1
+                    $new_state = -1;
+                    $txt_state = "DENIED";
+                }
+
+                $data = array("state_level" => $new_state);
+                $this->task->change_state($task->id, $data);
+                // logging changing state of task
+                $data = array(
+                    'task_id' => $task->id,
+                    'user_id' => $user_id,
+                    'state_level' => $new_state,
+                    'log_details' => $txt_state
+                );
+                $this->logging->task($data);
+            }
             echo "Success: Let do it!";
         } else {
             echo "Error: This ticket can not modify because of its STATE.";
